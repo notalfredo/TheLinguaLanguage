@@ -1,0 +1,2 @@
+plus multiply divide subtract
+subtract divide multiply plus
