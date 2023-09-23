@@ -5,17 +5,28 @@
 
 
 typedef enum token{
-    tok_invalid = 0,
+    tok_invalid, //Invalid token
 
-    tok_plus = 1,
-    tok_minus = 2,
-    tok_multiply = 3,
-    tok_divide = 4,
 
-    tok_integer = 5,
+    tok_plus,
+    tok_minus,
+    tok_multiply,
+    tok_divide,
 
-    tok_identifier = 6,
-    tok_assignment = 7,
+
+    tok_lit_integer,
+
+
+    tok_init_identifier, // 'let'
+    tok_identifier_name,
+    tok_assignment, // ':='
+
+
+    tok_type, // ':'
+    tok_type_int,
+
+
+    tok_eof
 }token;
 
 typedef struct keyWord{
@@ -34,7 +45,10 @@ static stringToToken mapKeyWordStringToToken[] = {
     {"minus", tok_minus},
     {"multiply", tok_multiply},
     {"divide", tok_divide},
-    {"<=", tok_assignment}
+
+    {"let", tok_init_identifier},
+
+    {"integer", tok_type_int},
 };
 
 
@@ -90,7 +104,7 @@ token getTok(){
         }
 
         token result = checkIfStringIsKeyword(identifierString);
-        return result != tok_invalid ? result : tok_identifier;
+        return result != tok_invalid ? result : tok_identifier_name;
     }
     //integer
     else if(isdigit(characterFound)){
@@ -99,11 +113,23 @@ token getTok(){
         do{
             digitString += characterFound;
             inputFile.get(characterFound);
+
         }while(isdigit(characterFound));
 
         currNumber = std::stoi(digitString);
-        return tok_integer;
+        return tok_lit_integer;
     }
+    else if(characterFound == ':'){
+
+        inputFile.get(characterFound);
+        if(characterFound == '='){
+            return tok_assignment;
+        }else{
+            return tok_type;
+        }
+        
+    }
+
 
     return tok_invalid;
 }
@@ -112,6 +138,21 @@ void getNextToken(){
     currToken = getTok();
 }
 
+    //tok_invalid, //Invalid token
+
+    //tok_plus,
+    //tok_minus,
+    //tok_multiply,
+    //tok_divide,
+
+    //tok_lit_integer,
+
+    //tok_init_identifier, // 'let'
+    //tok_identifier_name,
+    //tok_assignment, // ':='
+
+    //tok_type, // ':'
+    //tok_type_int
 
 void dumpToken(){
     switch (currToken){
@@ -135,16 +176,32 @@ void dumpToken(){
             std::cout << "tok_multiply" << std::endl;
             break;
 
-        case tok_integer:
+        case tok_lit_integer:
             std::cout << "tok_integer " << currNumber << std::endl;
             break;
 
-        case tok_identifier:
-            std::cout << "tok_identifier " << identifierString << std::endl;
+        case tok_init_identifier:
+            std::cout << "tok_init_identifier" << std::endl;
+            break;
+
+        case tok_identifier_name:
+            std::cout << "tok_identifier_name " << identifierString << std::endl;
             break;
 
         case tok_assignment:
             std::cout << "tok_assignment" << std::endl;
+            break;
+
+        case tok_type:
+            std::cout << "tok_type" << std::endl;
+            break;
+
+        case tok_type_int:
+            std::cout << "tok_type_int" << std::endl;
+            break;
+
+        case tok_eof:
+            std::cout << "tok_eof" << std::endl;
             break;
 
         default:
@@ -161,28 +218,14 @@ int main() {
 
     getNextToken();
     dumpToken();
+    
+    while(currToken != tok_eof){
+        getNextToken();
+        dumpToken();
+    }
+    
+    inputFile.close();
 
-    getNextToken();
-    dumpToken();
-                       
-    getNextToken();
-    dumpToken();
-
-    getNextToken();
-    dumpToken();
-
-    getNextToken();
-    dumpToken();
-                       
-    getNextToken();
-    dumpToken();
-
-
-    getNextToken();
-    dumpToken();
-                       
-    getNextToken();
-    dumpToken();
     return 0;
 }
 

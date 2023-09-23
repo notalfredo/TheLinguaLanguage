@@ -1,2 +1,1 @@
-plus multiply divide subtract
-subtract divide multiply plus
+let myTestVar: integer := 3 plus 3
