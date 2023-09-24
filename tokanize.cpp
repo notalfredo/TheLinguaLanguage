@@ -1,4 +1,5 @@
 #include <cctype>
+#include <cstdio>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -38,16 +39,15 @@ typedef struct keyWord{
 static token currToken;
 static int currNumber;
 static std::string identifierString;
-static std::ifstream inputFile;
+static FILE *file;
+static char characterFound = ' ';  
 
 static stringToToken mapKeyWordStringToToken[] = {
     {"plus", tok_plus},
     {"minus", tok_minus},
     {"multiply", tok_multiply},
     {"divide", tok_divide},
-
     {"let", tok_init_identifier},
-
     {"integer", tok_type_int},
 };
 
@@ -56,12 +56,15 @@ static stringToToken mapKeyWordStringToToken[] = {
 //===----------------------------------------------------------------------===//
 // File Handlaing
 //===----------------------------------------------------------------------===//
-int openFile(std::string fileName){
-    inputFile.open(fileName);
-    if (!inputFile.is_open()) {
-        std::cerr << "Error: Could not open the file " << fileName << std::endl;
-        return 0;
+
+int openFile(char * filename){
+    file = fopen(filename, "r");
+
+    if (file == NULL) {
+        perror("Error opening file");
+        return 1; // Exit with an error code
     }
+
     return 1;
 }
 
@@ -85,24 +88,20 @@ token checkIfStringIsKeyword(std::string foundWord){
 
 
 token getTok(){
-    char characterFound = ' ';  
-    inputFile.get(characterFound);
+    characterFound = fgetc(file);
 
-    //Skip any whitespace
     while(characterFound == ' '){
-        inputFile.get(characterFound);    
+        characterFound = fgetc(file);
     }
 
     //keyword or identifier
     if(isalpha(characterFound)){
         identifierString = characterFound;
-        inputFile.get(characterFound);
 
-        while(isalnum(characterFound)){
+        while(isalnum(characterFound = fgetc(file))){
             identifierString += characterFound;
-            inputFile.get(characterFound);
         }
-
+        fseek(file, -1, SEEK_CUR);
         token result = checkIfStringIsKeyword(identifierString);
         return result != tok_invalid ? result : tok_identifier_name;
     }
@@ -112,7 +111,7 @@ token getTok(){
 
         do{
             digitString += characterFound;
-            inputFile.get(characterFound);
+            characterFound = fgetc(file);
 
         }while(isdigit(characterFound));
 
@@ -121,7 +120,7 @@ token getTok(){
     }
     else if(characterFound == ':'){
 
-        inputFile.get(characterFound);
+        characterFound = fgetc(file);
         if(characterFound == '='){
             return tok_assignment;
         }else{
@@ -129,7 +128,13 @@ token getTok(){
         }
         
     }
+    else if(characterFound == '\n'){
+        return getTok();
+    }
 
+    if(characterFound == EOF){
+        return tok_eof;
+    }
 
     return tok_invalid;
 }
@@ -137,22 +142,6 @@ token getTok(){
 void getNextToken(){
     currToken = getTok();
 }
-
-    //tok_invalid, //Invalid token
-
-    //tok_plus,
-    //tok_minus,
-    //tok_multiply,
-    //tok_divide,
-
-    //tok_lit_integer,
-
-    //tok_init_identifier, // 'let'
-    //tok_identifier_name,
-    //tok_assignment, // ':='
-
-    //tok_type, // ':'
-    //tok_type_int
 
 void dumpToken(){
     switch (currToken){
@@ -205,7 +194,7 @@ void dumpToken(){
             break;
 
         default:
-            std::cout << "DUDE WTF HOW DID YOU BREAK MY PROGRAM " << currToken << std::endl;
+            std::cout << "DUDE WTF HOW DID YOU BREAK MY PROGRAM " << "->" << currToken << "<-" << std::endl;
             break;
     }
 }
@@ -213,18 +202,12 @@ void dumpToken(){
 
 //Temp main
 int main() {
-    std::string fileName = "tokenTest.txt"; // Change this to the path of your file
-    openFile(fileName);
+    openFile("tokenTest.txt");
 
-    getNextToken();
-    dumpToken();
-    
     while(currToken != tok_eof){
         getNextToken();
         dumpToken();
     }
-    
-    inputFile.close();
 
     return 0;
 }

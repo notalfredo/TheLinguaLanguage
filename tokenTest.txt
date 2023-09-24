@@ -1,1 +1,2 @@
 let myTestVar: integer := 3 plus 3
+integer := 3 multiply 4
