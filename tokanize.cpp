@@ -15,7 +15,7 @@ typedef enum token{
     tok_divide,
 
 
-    tok_lit_integer,
+    tok_lit_number,
 
 
     tok_init_identifier, // 'let'
@@ -116,7 +116,7 @@ token getTok(){
         }while(isdigit(characterFound));
 
         currNumber = std::stoi(digitString);
-        return tok_lit_integer;
+        return tok_lit_number;
     }
     else if(characterFound == ':'){
 
@@ -165,8 +165,8 @@ void dumpToken(){
             std::cout << "tok_multiply" << std::endl;
             break;
 
-        case tok_lit_integer:
-            std::cout << "tok_integer " << currNumber << std::endl;
+        case tok_lit_number:
+            std::cout << "tok_lit_number " << currNumber << std::endl;
             break;
 
         case tok_init_identifier:
